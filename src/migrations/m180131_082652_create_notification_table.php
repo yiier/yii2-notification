@@ -1,4 +1,9 @@
 <?php
+/**
+ * author     : forecho <caizhenghai@gmail.com>
+ * createTime : 2018/1/31 18:14
+ * description:
+ */
 
 use yii\db\Migration;
 

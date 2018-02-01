@@ -40,4 +40,60 @@ $ php yii migrate --migrationPath=@yiier/notification/migrations/
 Usage
 -----
 
-[Notification](/src/models/Notification.php)
+**Config**
+
+Configure Controller class as follows : :
+
+```php
+<?php
+use yiier\notification\actions\NotificationAction;
+
+
+class NotificationController extends Controller
+{
+    public function actions()
+    {
+        return [
+            'do' => [
+                'class' => NotificationAction::className(),
+            ]
+        ];
+    }
+}
+
+```
+
+**Url**
+
+```
+POST: http://xxxxxxxxxxxxxx/notification/do
+Form Data: action=read_all
+
+POST: http://xxxxxxxxxxxxxx/notification/do
+Form Data: action=read_all&ids=1,2,3
+
+POST: http://xxxxxxxxxxxxxx/notification/do
+Form Data: action=delete_all
+
+POST: http://xxxxxxxxxxxxxx/notification/do
+Form Data: action=delete_all&ids=1,2,3
+
+POST: http://xxxxxxxxxxxxxx/notification/do
+Form Data: action=delete&id=1
+```
+
+`action=delete` you can use `action=Notification::DEL_ACTION`
+
+
+http response success(code==200) return json:
+
+```json
+{"code":200,"data":0,"message":"success"}
+```
+http response failure(code==500) return json:
+
+```json
+{"code":500,"data":"","message":"xxxx"}
+```
+
+More [Notification](/src/models/Notification.php)

@@ -1,4 +1,9 @@
 <?php
+/**
+ * author     : forecho <caizhenghai@gmail.com>
+ * createTime : 2018/1/31 18:14
+ * description:
+ */
 
 namespace yiier\notification\models;
 
@@ -31,6 +36,21 @@ class Notification extends \yii\db\ActiveRecord
      * @var int read
      */
     const STATUS_READ = 1;
+
+    /**
+     * @var string delete all
+     */
+    const DEL_ALL_ACTION = 'delete_all';
+
+    /**
+     * @var string delete
+     */
+    const DEL_ACTION = 'delete';
+
+    /**
+     * @var string read all
+     */
+    const READ_ALL_ACTION = 'read_all';
 
 
     /**
@@ -90,11 +110,12 @@ class Notification extends \yii\db\ActiveRecord
 
 
     /**
+     * @param array $condition
      * @return int
      */
-    public static function readAll()
+    public static function readAll($condition = [])
     {
-        return self::updateAll(['user_id' => Yii::$app->user->id]);
+        return self::updateAll(['status' => self::STATUS_READ], array_merge(['user_id' => Yii::$app->user->id], $condition));
     }
 
 
@@ -104,16 +125,17 @@ class Notification extends \yii\db\ActiveRecord
      */
     public static function read($id)
     {
-        return self::updateAll(['user_id' => Yii::$app->user->id, 'id' => $id]);
+        return self::updateAll(['status' => self::STATUS_READ], ['user_id' => Yii::$app->user->id, 'id' => $id]);
     }
 
 
     /**
+     * @param array $condition
      * @return int
      */
-    public static function delAll()
+    public static function delAll($condition = [])
     {
-        return self::deleteAll(['user_id' => Yii::$app->user->id]);
+        return self::deleteAll(array_merge(['user_id' => Yii::$app->user->id], $condition));
     }
 
 
