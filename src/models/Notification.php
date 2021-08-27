@@ -7,8 +7,8 @@
 
 namespace yiier\notification\models;
 
-use common\models\User;
 use Yii;
+use yii\db\ActiveRecord;
 use yii\db\Exception;
 
 /**
@@ -113,9 +113,10 @@ class Notification extends \yii\db\ActiveRecord
      * @param array $condition
      * @return int
      */
-    public static function readAll($condition = [])
+    public static function readAll(array $condition = []): int
     {
-        return self::updateAll(['status' => self::STATUS_READ], array_merge(['user_id' => Yii::$app->user->id], $condition));
+        return self::updateAll(['status' => self::STATUS_READ],
+            array_merge(['user_id' => Yii::$app->user->id], $condition));
     }
 
 
@@ -123,7 +124,7 @@ class Notification extends \yii\db\ActiveRecord
      * @param $id
      * @return int
      */
-    public static function read($id)
+    public static function read($id): int
     {
         return self::updateAll(['status' => self::STATUS_READ], ['user_id' => Yii::$app->user->id, 'id' => $id]);
     }
@@ -133,7 +134,7 @@ class Notification extends \yii\db\ActiveRecord
      * @param array $condition
      * @return int
      */
-    public static function delAll($condition = [])
+    public static function delAll(array $condition = []): int
     {
         return self::deleteAll(array_merge(['user_id' => Yii::$app->user->id], $condition));
     }
@@ -143,7 +144,7 @@ class Notification extends \yii\db\ActiveRecord
      * @param $id
      * @return int
      */
-    public static function del($id)
+    public static function del($id): int
     {
         return self::deleteAll(['user_id' => Yii::$app->user->id, 'id' => $id]);
     }
@@ -151,7 +152,7 @@ class Notification extends \yii\db\ActiveRecord
     /**
      * @return int
      */
-    public static function unreadCount()
+    public static function unreadCount(): int
     {
         return self::find()->where(['user_id' => Yii::$app->user->id, 'status' => self::STATUS_UNREAD])->count('id');
     }
@@ -164,7 +165,7 @@ class Notification extends \yii\db\ActiveRecord
      * @param string $userNotification Optional user Notification field
      * @throws Exception
      */
-    public static function create($type, $toUserId, $content, $params = [], $userNotification = '')
+    public static function create($type, $toUserId, $content, array $params = [], string $userNotification = '')
     {
         $model = new self();
         $model->setAttributes(array_merge([
@@ -174,7 +175,9 @@ class Notification extends \yii\db\ActiveRecord
         ], $params));
         if ($model->save()) {
             if ($userNotification) {
-                User::updateAllCounters([$userNotification => 1], ['id' => $toUserId]);
+                /** @var ActiveRecord $userModel */
+                $userModel = Yii::$app->user->identityClass;
+                $userModel::updateAllCounters([$userNotification => 1], ['id' => $toUserId]);
             }
         } else {
             throw new Exception(array_values($model->getFirstErrors())[0]);
@@ -189,9 +192,11 @@ class Notification extends \yii\db\ActiveRecord
      * @param string $userNotification Optional user Notification field
      * @throws Exception
      */
-    public static function createToAllUser($type, $content, $params = [], $userNotification = '')
+    public static function createToAllUser($type, $content, array $params = [], string $userNotification = '')
     {
-        $items = User::find()->column();
+        /** @var ActiveRecord $userModel */
+        $userModel = Yii::$app->user->identityClass;
+        $items = $userModel::find()->column();
         $rows = [];
         foreach ($items as $key => $item) {
             $rows[$key]['user_id'] = $item;
@@ -212,10 +217,12 @@ class Notification extends \yii\db\ActiveRecord
      */
     public static function syncUserNotificationCount($userNotification)
     {
-        $items = User::find()->column();
+        /** @var ActiveRecord $userModel */
+        $userModel = Yii::$app->user->identityClass;
+        $items = $userModel::find()->column();
         foreach ($items as $key => $item) {
             $unreadCount = self::find()->where(['user_id' => $item, 'status' => self::STATUS_UNREAD])->count('id');
-            User::updateAll([$userNotification => $unreadCount, 'id' => $item]);
+            $userModel::updateAll([$userNotification => $unreadCount, 'id' => $item]);
         }
     }
 
@@ -223,8 +230,9 @@ class Notification extends \yii\db\ActiveRecord
      * @param $tableName
      * @param array $rows
      * @return bool|int
+     * @throws Exception
      */
-    public static function saveAll($tableName, $rows = [])
+    public static function saveAll($tableName, array $rows = [])
     {
         if ($rows) {
             return \Yii::$app->db->createCommand()
